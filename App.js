@@ -9,6 +9,7 @@ import * as Localization from "expo-localization";
 import { I18n } from "i18n-js";
 import HomeScreen from "./screens/HomeScreen";
 import { Translations } from "./Localization";
+import AppNavigator from "./navigator/AppNavigator";
 
 // Initialize Apollo Client
 const client = new ApolloClient({
@@ -50,7 +51,7 @@ export default function App() {
   return (
     <ApolloProvider client={client}>
       <Provider store={store}>
-        <HomeScreen />
+        <AppNavigator />
       </Provider>
     </ApolloProvider>
   );
