@@ -41,3 +41,5 @@ Technologies used in the project:
 *   React 18.2.0
 *   React Native 0.73.4
 *   Expo 50.0.7
+*   Login with Firebase
+*   Animation with Lottie
