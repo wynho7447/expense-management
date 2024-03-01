@@ -18,6 +18,9 @@ import Wallet from "../components/Wallet";
 
 import { I18n } from "i18n-js";
 import { Translations } from "../Localization";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import Entries from "../components/Entries";
+import { EntrieType } from "../constants/enums";
 
 function mapStateToProps(state) {
   return { action: state.action, name: state.name, locale: state.locale };
@@ -100,7 +103,9 @@ class HomeScreen extends React.Component {
             <ScrollView>
               <TitleBar>
                 <TouchableOpacity
-                  onPress={this.props.openMenu}
+                  onPress={() => {
+                    this.props.navigation.navigate("Login");
+                  }}
                   style={{ position: "absolute", top: 0 }}
                 >
                   <Avatar />
@@ -117,20 +122,31 @@ class HomeScreen extends React.Component {
                 showsHorizontalScrollIndicator={false}
                 style={{ padding: 20, paddingLeft: 10, paddingTop: 20 }}
               >
-                {wallets.map((wallet, index) => (
-                  <Wallet
-                    key={index}
-                    index={index}
-                    title={wallet.title}
-                    amount={wallet.amount}
-                  />
-                ))}
+                <WalletsContainer>
+                  {/* Add wallet button */}
+                  <TouchableOpacity>
+                    <ButtonAddWallet>
+                      <Ionicons name="add" size={24} color="#C8C8C8" />
+                    </ButtonAddWallet>
+                  </TouchableOpacity>
+                  {/* Wallet list */}
+                  {wallets.map((wallet, index) => (
+                    <Wallet
+                      key={index}
+                      index={index}
+                      title={wallet.title}
+                      amount={wallet.amount}
+                    />
+                  ))}
+                </WalletsContainer>
               </ScrollView>
               <Section style={{ marginTop: 56 }}>
                 <Header>
                   <HeaderTitle>Latest Entries</HeaderTitle>
                 </Header>
-                <Content></Content>
+                <Content>
+                  <Entries data={entries} />
+                </Content>
               </Section>
             </ScrollView>
           </SafeAreaView>
@@ -202,7 +218,7 @@ const Title = styled.Text`
 
 const Name = styled.Text`
   font-size: 20px;
-  color: "#2F2F2F";
+  color: #2f2f2f;
   font-weight: bold;
 `;
 
@@ -212,6 +228,24 @@ const TitleBar = styled.View`
   padding-left: 80px;
 `;
 
+const WalletsContainer = styled.View`
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+`;
+
+const ButtonAddWallet = styled.View`
+  border-radius: 10px;
+  width: 52px;
+  height: 52px;
+  border: 1px dashed #c8c8c8;
+  justify-content: center;
+  align-items: center;
+  margin-left: 16px;
+`;
+
+// Contanst
 const wallets = [
   {
     title: "Total Salary",
@@ -224,5 +258,40 @@ const wallets = [
   {
     title: "Monthly Expense",
     amount: "4000",
+  },
+];
+
+const entries = [
+  {
+    title: "Food",
+    date: "2024/02/01",
+    description: "Google Pay",
+    amount: 200,
+    type: EntrieType.EXPENSE,
+    icon: "fast-food",
+  },
+  {
+    title: "Salary",
+    date: "2024/02/01",
+    description: "Cash",
+    amount: 3000,
+    type: EntrieType.INCOME,
+    icon: "cash",
+  },
+  {
+    title: "Uber",
+    date: "2024/02/01",
+    description: "Cash",
+    amount: 18,
+    type: EntrieType.EXPENSE,
+    icon: "bicycle",
+  },
+  {
+    title: "Shopping",
+    date: "2024/02/01",
+    description: "Cash",
+    amount: 400,
+    type: EntrieType.EXPENSE,
+    icon: "cart",
   },
 ];

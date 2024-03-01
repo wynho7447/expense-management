@@ -33,6 +33,10 @@ const reducer = (state = initalState, action) => {
       return { action: "closeMenu" };
     case "UPDATE_NAME":
       return { name: action.name };
+    case "OPEN_LOGIN":
+      return { action: "openLogin" };
+    case "CLOSE_LOGIN":
+      return { action: "closeLogin" };
     default:
       return state;
   }

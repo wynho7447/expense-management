@@ -13,6 +13,8 @@ const Wallet = (props) => {
         <WalletIcon color={isColor ? "rgba(255, 255, 255,0.8)" : "#d2d2d2"} />
         <Title
           style={{ color: isColor ? "rgba(255, 255, 255,0.8)" : "#d2d2d2" }}
+          ellipsizeMode="tail"
+          numberOfLines={2}
         >
           {props.title}
         </Title>
@@ -34,7 +36,6 @@ const Container = styled.View`
   padding: 12px 16px 12px;
   border-radius: 10px;
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.05);
-  margin: 0 8px;
 `;
 
 const Titlebar = styled.View`
@@ -47,6 +48,7 @@ const Title = styled.Text`
   font-size: 14px;
   margin-left: 8px;
   color: #d2d2d2;
+  width: 68px;
 `;
 
 const Amount = styled.Text`

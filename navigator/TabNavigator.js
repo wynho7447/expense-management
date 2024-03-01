@@ -5,6 +5,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import HomeScreen from "../screens/HomeScreen";
 import TabBarAdvancedButton from "./TabBarAdvancedButton";
 import styled from "styled-components";
+import LoginScreen from "../screens/LoginScreen";
 
 const activeColor = "#3B3DBF";
 const inactiveColor = "#b8bece";
@@ -18,6 +19,11 @@ const HomeStackScreen = () => {
         name="Home"
         component={HomeScreen}
         options={{ headerShown: false }}
+      />
+      <HomeStack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{ presentation: "fullScreenModal", headerShown: false }}
       />
     </HomeStack.Navigator>
   );
