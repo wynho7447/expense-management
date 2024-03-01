@@ -4,6 +4,7 @@ import { Animated, TouchableOpacity, Dimensions } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MenuItem from "./MenuItem";
 import { connect } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 let screenWidth = Dimensions.get("window").width;
 var cardWidth = screenWidth;
@@ -12,7 +13,7 @@ if (screenWidth > 500) {
 }
 
 function mapStateToProps(state) {
-  return { action: state.action };
+  return { action: state.action, name: state.name };
 }
 
 function mapDispatchToProps(dispatch) {
@@ -20,6 +21,21 @@ function mapDispatchToProps(dispatch) {
     closeMenu: () =>
       dispatch({
         type: "CLOSE_MENU",
+      }),
+    updateName: (name) =>
+      dispatch({
+        type: "UPDATE_NAME",
+        name,
+      }),
+    updateAvatar: (avatar) =>
+      dispatch({
+        type: "UPDATE_AVATAR",
+        avatar,
+      }),
+
+    openLogin: () =>
+      dispatch({
+        type: "OPEN_LOGIN",
       }),
   };
 }
@@ -55,12 +71,25 @@ class Menu extends React.Component {
     }
   };
 
+  handleMenu = (index) => {
+    if (index === 3) {
+      this.props.closeMenu();
+      this.props.updateName();
+      this.props.updateAvatar(require("../assets/avatar-default.jpg"));
+      AsyncStorage.clear();
+
+      setTimeout(() => {
+        this.props.openLogin();
+      }, 1000);
+    }
+  };
+
   render() {
     return (
       <AnimatedContainer style={{ top: this.state.top }}>
         <Cover>
-          <Title> Quang Nguyen</Title>
-          <Subtitle>Designer at Design Code</Subtitle>
+          <Title>{this.props.name}</Title>
+          <Subtitle>Setting Menu</Subtitle>
         </Cover>
         <TouchableOpacity
           onPress={this.props.closeMenu}
@@ -78,12 +107,14 @@ class Menu extends React.Component {
         </TouchableOpacity>
         <Content>
           {items.map((item, index) => (
-            <MenuItem
+            <TouchableOpacity
               key={index}
-              icon={item.icon}
-              title={item.title}
-              text={item.text}
-            />
+              onPress={() => {
+                this.handleMenu(index);
+              }}
+            >
+              <MenuItem icon={item.icon} title={item.title} text={item.text} />
+            </TouchableOpacity>
           ))}
         </Content>
       </AnimatedContainer>

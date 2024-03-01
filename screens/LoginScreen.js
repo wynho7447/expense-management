@@ -5,11 +5,22 @@ import { LinearGradient } from "expo-linear-gradient";
 import { connect } from "react-redux";
 import {
   Alert,
+  Animated,
+  Dimensions,
   Keyboard,
   StatusBar,
   TouchableOpacity,
   TouchableWithoutFeedback,
 } from "react-native";
+import AppTextInput from "../components/AppTextInput";
+import firebase from "../components/Firebase";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import Success from "../components/Success";
+import Loading from "../components/Loading";
+import { saveState } from "../components/AsyncStorage";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const screenHeight = Dimensions.get("window").height;
 
 function mapStateToProps(state) {
   return { action: state.action };
@@ -21,86 +32,185 @@ function mapDispatchToProps(dispatch) {
       dispatch({
         type: "CLOSE_LOGIN",
       }),
+    updateName: (name) =>
+      dispatch({
+        type: "UPDATE_NAME",
+        name,
+      }),
+    updateAvatar: (avatar) =>
+      dispatch({
+        type: "UPDATE_AVATAR",
+        avatar,
+      }),
   };
 }
 
 class LoginScreen extends React.Component {
   state = {
-    email: "",
-    password: "",
-    iconEmail: require("../assets/icon-email.png"),
-    iconPassword: require("../assets/icon-password.png"),
+    email: "tester01@gmail.com",
+    password: "tester01",
+    isSuccessful: false,
+    isLoading: false,
+    errors: {},
+
+    // Animated
+    topLogin: new Animated.Value(0),
   };
 
   tapBackground = () => {
     Keyboard.dismiss();
   };
 
-  handleLogin = () => {
-    // Start loading
-    this.setState({ isLoading: true });
+  validateForm = () => {
+    let errors = {};
+    const regEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w\w+)+$/;
+    const email = this.state.email;
+    const password = this.state.password;
 
-    // Simulate API Call
-    setTimeout(() => {
-      // Stop loading and show success
-      this.setState({ isLoading: false });
-      this.setState({ isSuccessful: true });
+    if (!email) errors.email = "Email is required";
+    else if (regEmail.test(email) === false)
+      errors.email = "Email is Not Valid email address";
 
-      setTimeout(() => {
-        this.props.closeLogin();
-        this.setState({ isSuccessful: false });
-      }, 1000);
+    if (!password) errors.password = "Password is required";
 
-      Alert.alert("Congrats", "You've logged in successfuly!");
-    }, 2000);
+    this.setState({ errors });
+
+    return Object.keys(errors).length === 0;
   };
+
+  retrieveName = async () => {
+    try {
+      const name = await AsyncStorage.getItem("name");
+      if (name !== null) {
+        this.props.updateName(name);
+      }
+    } catch (error) {
+      console.log("Error get name:" + error);
+    }
+  };
+
+  handleLogin = () => {
+    if (this.validateForm()) {
+      // Start loading
+      this.setState({ isLoading: true });
+
+      const email = this.state.email;
+      const password = this.state.password;
+
+      const auth = getAuth(firebase);
+
+      signInWithEmailAndPassword(auth, email, password)
+        .catch(function (error) {
+          // Error message
+          if (error.code == "auth/invalid-credential")
+            Alert.alert(
+              "Error",
+              "You've logged in Fail. Email or password is Not Correct"
+            );
+          else Alert.alert("Error", error.message);
+        })
+        .then((response) => {
+          this.setState({ isLoading: false });
+
+          if (response) {
+            // Successful
+            this.setState({ isSuccessful: true });
+
+            this.fetchUser();
+
+            setTimeout(() => {
+              Keyboard.dismiss();
+              this.setState({ isSuccessful: false });
+              // Alert.alert("Congrats", "You've logged in successfuly!");
+              this.props.closeLogin();
+            }, 1000);
+
+            // console.log(response.user);
+          }
+        });
+    }
+  };
+
+  fetchUser = () => {
+    fetch("https://randomuser.me/api/")
+      .then((response) => response.json())
+      .then((response) => {
+        const avatar = response.results[0].picture.thumbnail;
+        const name =
+          response.results[0].name.first + " " + response.results[0].name.last;
+
+        saveState({ name, avatar });
+        this.props.updateName(name);
+        this.props.updateAvatar({ uri: avatar });
+      });
+  };
+
+  componentDidMount() {
+    this.retrieveName();
+  }
 
   componentDidUpdate() {
     if (this.props.action == "closeLogin") {
-      console.log("Tôi nghe close login");
       this.props.navigation.navigate("Home");
+    }
+
+    if (this.props.action == "focusInputIn") {
+      Animated.timing(this.state.topLogin, {
+        toValue: -80,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }
+
+    if (this.props.action == "focusInputOut") {
+      Animated.timing(this.state.topLogin, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
     }
   }
 
   render() {
     return (
-      <Container>
-        <TouchableWithoutFeedback onPress={this.tapBackground}>
-          <BlurView
-            tint="default"
-            intensity={100}
-            style={{ position: "absolute", width: "100%", height: "100%" }}
-          />
-        </TouchableWithoutFeedback>
-        <StatusBar hidden />
-        <Overlay source={require("../assets/vector-1.png")} />
-        <Logo source={require("../assets/icon.png")} />
-        <Text style={{ marginTop: 60 }}>Email: tester01@gmail.com</Text>
-        <Text>Password: tester01</Text>
-        <InputGroup>
-          <TextInput
-            onChangeText={(email) => this.setState({ email })}
-            placeholder="Email"
-            value={this.state.email}
-            keyboardType="email-address"
-          />
-          <IconEmail source={this.state.iconEmail} />
-        </InputGroup>
-        <InputGroup>
-          <TextInput
-            onChangeText={(password) => this.setState({ password })}
-            placeholder="Password"
-            value={this.state.password}
-            secureTextEntry={true}
-          />
-          <IconPassword source={this.state.iconPassword} />
-        </InputGroup>
-        <TouchableOpacity onPress={this.handleLogin}>
-          <ButtonView>
-            <ButtonText>Log in</ButtonText>
-          </ButtonView>
-        </TouchableOpacity>
-      </Container>
+      <>
+        <AnimatedContainer style={{ top: this.state.topLogin }}>
+          <Overlay source={require("../assets/vector-1.png")} />
+          <StatusBar hidden />
+          <TouchableWithoutFeedback onPress={this.tapBackground}>
+            <BlurView tint="default" intensity={100} />
+          </TouchableWithoutFeedback>
+
+          <Logo source={require("../assets/logo.png")} />
+          <Text style={{ marginTop: 60 }}>Email: tester01@gmail.com</Text>
+          <Text>Password: tester01</Text>
+          <LoginForm>
+            <AppTextInput
+              onChangeText={(email) => this.setState({ email })}
+              placeholder="Email"
+              value={this.state.email}
+              keyboardType="email-address"
+              icon="mail"
+              error={this.state.errors.email}
+            />
+            <AppTextInput
+              onChangeText={(password) => this.setState({ password })}
+              placeholder="Password"
+              value={this.state.password}
+              secureTextEntry={true}
+              icon="lock-closed"
+              error={this.state.errors.password}
+            />
+            <TouchableOpacity onPress={this.handleLogin}>
+              <ButtonView>
+                <ButtonText>Log in</ButtonText>
+              </ButtonView>
+            </TouchableOpacity>
+          </LoginForm>
+          <Success isActive={this.state.isSuccessful} />
+          <Loading isActive={this.state.isLoading} />
+        </AnimatedContainer>
+      </>
     );
   }
 }
@@ -119,25 +229,17 @@ const Container = styled(LinearGradient).attrs({
   align-items: center;
 `;
 
+const AnimatedContainer = Animated.createAnimatedComponent(Container);
+
 const Overlay = styled.Image`
   position: absolute;
   top: 0;
   width: 100%;
 `;
 
-const TextInput = styled.TextInput`
-  border: 1px solid #dbdfea;
-  width: 295px;
-  height: 44px;
-  border-radius: 10px;
-  font-size: 17px;
-  color: #3c4560;
-  padding-left: 44px;
-`;
-
 const Logo = styled.Image`
   width: 80px;
-  height: 80px;
+  height: 92px;
   margin-top: 120px;
 `;
 
@@ -151,15 +253,19 @@ const Text = styled.Text`
   margin-top: 20px;
 `;
 
+const LoginForm = styled.View`
+  padding: 0 32px;
+  flex-direction: column;
+`;
+
 const ButtonView = styled.View`
-  background: #5263ff;
-  width: 295px;
+  background: #3b3dbf;
   height: 50px;
   justify-content: center;
   align-items: center;
   border-radius: 10px;
   margin-top: 20px;
-  box-shadow: 0 10px 20px #c2cbff;
+  box-shadow: 0 10px 20px rgba(93, 94, 217, 0.2);
 `;
 
 const ButtonText = styled.Text`
@@ -169,24 +275,8 @@ const ButtonText = styled.Text`
   font-size: 20px;
 `;
 
-const InputGroup = styled.View`
-  flex-direction: row;
-  align-items: center;
-  margin-top: 20px;
-`;
-
-const IconEmail = styled.Image`
-  width: 24px;
-  height: 16px;
+const BlurView = styled.View`
   position: absolute;
-  left: 10px;
+  width: 100%;
+  height: 100%;
 `;
-
-const IconPassword = styled.Image`
-  width: 18px;
-  height: 24px;
-  position: absolute;
-  left: 15px;
-`;
-
-const BlurView = styled.View``;

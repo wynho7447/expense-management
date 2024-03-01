@@ -32,6 +32,10 @@ function mapDispatchToProps(dispatch) {
       dispatch({
         type: "OPEN_MENU",
       }),
+    openLogin: () =>
+      dispatch({
+        type: "OPEN_LOGIN",
+      }),
   };
 }
 
@@ -52,6 +56,10 @@ class HomeScreen extends React.Component {
 
   componentDidUpdate() {
     this.toggleMenu();
+
+    if (this.props.action == "openLogin") {
+      this.props.navigation.navigate("Login");
+    }
   }
 
   toggleMenu = () => {
@@ -88,6 +96,14 @@ class HomeScreen extends React.Component {
     }
   };
 
+  handleAvatar = () => {
+    if (this.props.name) {
+      this.props.openMenu();
+    } else {
+      this.props.navigation.push("Login");
+    }
+  };
+
   render() {
     return (
       <RootView>
@@ -103,9 +119,7 @@ class HomeScreen extends React.Component {
             <ScrollView>
               <TitleBar>
                 <TouchableOpacity
-                  onPress={() => {
-                    this.props.navigation.navigate("Login");
-                  }}
+                  onPress={this.handleAvatar}
                   style={{ position: "absolute", top: 0 }}
                 >
                   <Avatar />

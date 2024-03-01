@@ -22,21 +22,29 @@ const client = new ApolloClient({
 });
 
 const initalState = {
-  // action: "openMenu",
+  action: "",
+  name: "",
+  avatar: require("./assets/avatar-default.jpg"),
 };
 
 const reducer = (state = initalState, action) => {
   switch (action.type) {
     case "OPEN_MENU":
-      return { action: "openMenu" };
+      return { ...state, action: "openMenu" };
     case "CLOSE_MENU":
-      return { action: "closeMenu" };
+      return { ...state, action: "closeMenu" };
     case "UPDATE_NAME":
-      return { name: action.name };
+      return { ...state, name: action.name };
+    case "UPDATE_AVATAR":
+      return { ...state, avatar: action.avatar };
+    case "OPEN_CARD":
+      return { ...state, action: "openCard" };
+    case "CLOSE_CARD":
+      return { ...state, action: "closeCard" };
     case "OPEN_LOGIN":
-      return { action: "openLogin" };
+      return { ...state, action: "openLogin" };
     case "CLOSE_LOGIN":
-      return { action: "closeLogin" };
+      return { ...state, action: "closeLogin" };
     default:
       return state;
   }
