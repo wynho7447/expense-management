@@ -3,21 +3,16 @@ import styled from "styled-components";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { TouchableOpacity } from "react-native";
 import { connect } from "react-redux";
+import { focusInputIn, focusInputOut } from "../redux/appActions";
 
 function mapStateToProps(state) {
-  return { action: state.action };
+  return { action: state.appReducer.action };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps() {
   return {
-    focusInputIn: () =>
-      dispatch({
-        type: "FOCUS_INPUT_IN",
-      }),
-    focusInputOut: () =>
-      dispatch({
-        type: "FOCUS_INPUT_OUT",
-      }),
+    focusInputIn,
+    focusInputOut,
   };
 }
 
@@ -80,7 +75,7 @@ class AppTextInput extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(AppTextInput);
+export default connect(mapStateToProps, mapDispatchToProps())(AppTextInput);
 
 const Input = styled.TextInput`
   border: ${(props) =>

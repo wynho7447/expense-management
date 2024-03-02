@@ -1,7 +1,8 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { EntrieType } from "../constants/enums";
+import { useSelector } from "react-redux";
 
 const options = {
   style: "currency",
@@ -12,26 +13,29 @@ const numberFormat = new Intl.NumberFormat("en-US", options);
 
 const EntrieItem = (props) => {
   const isDisplay = props.index > 0;
+  const theme = useSelector((state) => state.appReducer.theme);
   return (
-    <Container>
-      <Division style={{ display: isDisplay ? "block" : "none" }} />
-      <IconBox>
-        <Ionicons name={props.icon} size={26} color={"#7FC2DA"} />
-      </IconBox>
-      <EntrieContent>
-        <Title>{props.title}</Title>
-        <Subtitle>{props.date}</Subtitle>
-      </EntrieContent>
-      <EntrieAmount>
-        {props.type == EntrieType.INCOME && (
-          <Income>+ {numberFormat.format(props.amount)}</Income>
-        )}
-        {props.type == EntrieType.EXPENSE && (
-          <Amount>- {numberFormat.format(props.amount)}</Amount>
-        )}
-        <Subtitle>{props.description}</Subtitle>
-      </EntrieAmount>
-    </Container>
+    <ThemeProvider theme={theme}>
+      <Container>
+        <Division style={{ display: isDisplay ? "block" : "none" }} />
+        <IconBox>
+          <Ionicons name={props.icon} size={26} color={"#7FC2DA"} />
+        </IconBox>
+        <EntrieContent>
+          <Title>{props.title}</Title>
+          <Subtitle>{props.date}</Subtitle>
+        </EntrieContent>
+        <EntrieAmount>
+          {props.type == EntrieType.INCOME && (
+            <Income>+ {numberFormat.format(props.amount)}</Income>
+          )}
+          {props.type == EntrieType.EXPENSE && (
+            <Amount>- {numberFormat.format(props.amount)}</Amount>
+          )}
+          <Subtitle>{props.description}</Subtitle>
+        </EntrieAmount>
+      </Container>
+    </ThemeProvider>
   );
 };
 
@@ -47,7 +51,10 @@ const Container = styled.View`
 const Division = styled.View`
   height: 1px;
   width: 100%;
-  background-color: rgba(47, 47, 47, 0.05);
+  background-color: ${(props) =>
+    props.theme.mode == "light"
+      ? "rgba(47, 47, 47, 0.05);"
+      : " rgba(255, 255, 255, 0.05);"};
   position: absolute;
   top: 0;
 `;
@@ -69,13 +76,13 @@ const EntrieContent = styled.View`
 const Title = styled.Text`
   font-size: 18px;
   font-weight: 500;
-  color: #2f2f2f;
+  color: ${(props) => props.theme.PRIMARY_TEXT_COLOR};
 `;
 
 const Subtitle = styled.Text`
   font-size: 14px;
   font-weight: 400;
-  color: #b6b6b6;
+  color: ${(props) => props.theme.PRIMARY_TEXT_COLOR};
 `;
 
 const EntrieAmount = styled.View`

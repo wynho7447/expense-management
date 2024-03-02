@@ -6,6 +6,7 @@ import HomeScreen from "../screens/HomeScreen";
 import TabBarAdvancedButton from "./TabBarAdvancedButton";
 import styled from "styled-components";
 import LoginScreen from "../screens/LoginScreen";
+import { useSelector } from "react-redux";
 
 const activeColor = "#3B3DBF";
 const inactiveColor = "#b8bece";
@@ -116,8 +117,18 @@ function getNextIndex(index) {
 }
 
 export default TabNavigator = () => {
+  const theme = useSelector((state) => state.appReducer.theme);
+
   return (
-    <Tab.Navigator screenOptions={{ headerShown: false }}>
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: theme.mode == "light" ? "#F0F1F5" : "#000000",
+          borderTopWidth: theme.mode == "light" ? 1 : 0,
+        },
+      }}
+    >
       <Tab.Screen
         name="HomeTab"
         component={HomeStackScreen}
@@ -159,4 +170,5 @@ export default TabNavigator = () => {
 
 const TabBarLabel = styled.Text`
   font-size: 12px;
+  margin-top: -10px;
 `;

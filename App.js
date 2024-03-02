@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { legacy_createStore as createStore } from "redux";
-import { LinearGradient } from "expo-linear-gradient";
+import { legacy_createStore as createStore, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 
 import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
 import * as Localization from "expo-localization";
 import { I18n } from "i18n-js";
-import HomeScreen from "./screens/HomeScreen";
 import { Translations } from "./Localization";
 import AppNavigator from "./navigator/AppNavigator";
+import reducer from "./redux/rootReduces";
+import thunk from "redux-thunk";
 
 // Initialize Apollo Client
 const client = new ApolloClient({
@@ -21,36 +21,7 @@ const client = new ApolloClient({
   cache: new InMemoryCache(),
 });
 
-const initalState = {
-  action: "",
-  name: "",
-  avatar: require("./assets/avatar-default.jpg"),
-};
-
-const reducer = (state = initalState, action) => {
-  switch (action.type) {
-    case "OPEN_MENU":
-      return { ...state, action: "openMenu" };
-    case "CLOSE_MENU":
-      return { ...state, action: "closeMenu" };
-    case "UPDATE_NAME":
-      return { ...state, name: action.name };
-    case "UPDATE_AVATAR":
-      return { ...state, avatar: action.avatar };
-    case "OPEN_CARD":
-      return { ...state, action: "openCard" };
-    case "CLOSE_CARD":
-      return { ...state, action: "closeCard" };
-    case "OPEN_LOGIN":
-      return { ...state, action: "openLogin" };
-    case "CLOSE_LOGIN":
-      return { ...state, action: "closeLogin" };
-    default:
-      return state;
-  }
-};
-
-const store = createStore(reducer);
+const store = createStore(reducer, applyMiddleware(thunk));
 
 export default function App() {
   const i18n = new I18n(Translations);
@@ -68,14 +39,6 @@ export default function App() {
     </ApolloProvider>
   );
 }
-
-// const Container = styled(LinearGradient).attrs({
-//   colors: ["#EFF1F5", "#ffffff"],
-//   start: { x: 0, y: 0 },
-//   end: { x: 0, y: 1 },
-// })`
-//   flex: 1;
-// `;
 
 const Container = styled.View`
   flex: 1;

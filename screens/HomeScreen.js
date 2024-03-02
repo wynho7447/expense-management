@@ -1,5 +1,5 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import {
   SafeAreaView,
   ScrollView,
@@ -21,21 +21,32 @@ import { Translations } from "../Localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entries from "../components/Entries";
 import { EntrieType } from "../constants/enums";
+import {
+  openMenu,
+  openLogin,
+  OPEN_LOGIN,
+  OPEN_MENU,
+  CLOSE_MENU,
+  updateAvatar,
+  updateName,
+} from "../redux/appActions";
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function mapStateToProps(state) {
-  return { action: state.action, name: state.name, locale: state.locale };
+  return {
+    action: state.appReducer.action,
+    name: state.appReducer.name,
+    theme: state.appReducer.theme,
+  };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps() {
   return {
-    openMenu: () =>
-      dispatch({
-        type: "OPEN_MENU",
-      }),
-    openLogin: () =>
-      dispatch({
-        type: "OPEN_LOGIN",
-      }),
+    openMenu,
+    openLogin,
+    updateAvatar,
+    updateName,
   };
 }
 
@@ -46,24 +57,43 @@ class HomeScreen extends React.Component {
   state = {
     scale: new Animated.Value(1),
     opacity: new Animated.Value(1),
-    // locale: i18n.locale,
+    name: "",
   };
 
   componentDidMount() {
-    StatusBar.setBarStyle("dark-content", true);
+    // StatusBar.setBarStyle("dark-content", true);
     // if (Platform.OS == "android") StatusBar.setBarStyle("light-content", true);
+
+    this.loadState();
   }
+  loadState = () => {
+    AsyncStorage.getItem("state").then((serializedState) => {
+      const state = JSON.parse(serializedState);
+
+      if (state) {
+        // console.log("Load state: " + JSON.stringify(state));
+        if (state.name != this.props.name) {
+          this.props.updateAvatar({ uri: state.avatar });
+          this.props.updateName(state.name);
+        }
+      } else {
+        this.setState({
+          photo: require("../assets/avatar-default.jpg"),
+        });
+        this.props.openLogin();
+      }
+    });
+  };
 
   componentDidUpdate() {
     this.toggleMenu();
-
-    if (this.props.action == "openLogin") {
+    if (this.props.action == OPEN_LOGIN) {
       this.props.navigation.navigate("Login");
     }
   }
 
   toggleMenu = () => {
-    if (this.props.action == "openMenu") {
+    if (this.props.action == OPEN_MENU) {
       Animated.timing(this.state.scale, {
         toValue: 0.9,
         duration: 300,
@@ -79,7 +109,7 @@ class HomeScreen extends React.Component {
       StatusBar.setBarStyle("light-content", true);
     }
 
-    if (this.props.action == "closeMenu") {
+    if (this.props.action == CLOSE_MENU) {
       Animated.timing(this.state.scale, {
         toValue: 1,
         duration: 300,
@@ -106,71 +136,79 @@ class HomeScreen extends React.Component {
 
   render() {
     return (
-      <RootView>
-        <Menu />
-        <AnimatedContainer
-          style={{
-            transform: [{ scale: this.state.scale }],
-            opacity: this.state.opacity,
-          }}
-        >
-          <Overlay source={require("../assets/vector-2.png")} />
-          <SafeAreaView>
-            <ScrollView>
-              <TitleBar>
-                <TouchableOpacity
-                  onPress={this.handleAvatar}
-                  style={{ position: "absolute", top: 0 }}
-                >
-                  <Avatar />
-                </TouchableOpacity>
-                <Title>{i18n.t("greeting")}</Title>
-                <Name>{this.props.name}</Name>
-                <NotificationIcon
-                  style={{ position: "absolute", right: 20, top: 5 }}
-                />
-              </TitleBar>
-              <Subtitle>Overview</Subtitle>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={{ padding: 20, paddingLeft: 10, paddingTop: 20 }}
-              >
-                <WalletsContainer>
-                  {/* Add wallet button */}
-                  <TouchableOpacity>
-                    <ButtonAddWallet>
-                      <Ionicons name="add" size={24} color="#C8C8C8" />
-                    </ButtonAddWallet>
+      <ThemeProvider theme={this.props.theme}>
+        <RootView>
+          <Menu />
+          <AnimatedContainer
+            style={{
+              transform: [{ scale: this.state.scale }],
+              opacity: this.state.opacity,
+            }}
+          >
+            <Overlay
+              source={
+                this.props.theme.mode == "light"
+                  ? require("../assets/vector-2.png")
+                  : require("../assets/vector-2-dark.png")
+              }
+            />
+            <SafeAreaView>
+              <ScrollView>
+                <TitleBar>
+                  <TouchableOpacity
+                    onPress={this.handleAvatar}
+                    style={{ position: "absolute", top: 0 }}
+                  >
+                    <Avatar />
                   </TouchableOpacity>
-                  {/* Wallet list */}
-                  {wallets.map((wallet, index) => (
-                    <Wallet
-                      key={index}
-                      index={index}
-                      title={wallet.title}
-                      amount={wallet.amount}
-                    />
-                  ))}
-                </WalletsContainer>
+                  <Title>{i18n.t("greeting")}</Title>
+                  <Name>{this.props.name}</Name>
+                  <NotificationIcon
+                    style={{ position: "absolute", right: 20, top: 5 }}
+                  />
+                </TitleBar>
+                <Subtitle>Overview</Subtitle>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ padding: 20, paddingLeft: 10, paddingTop: 20 }}
+                >
+                  <WalletsContainer>
+                    {/* Add wallet button */}
+                    <TouchableOpacity>
+                      <ButtonAddWallet>
+                        <Ionicons name="add" size={24} color="#C8C8C8" />
+                      </ButtonAddWallet>
+                    </TouchableOpacity>
+                    {/* Wallet list */}
+                    {wallets.map((wallet, index) => (
+                      <Wallet
+                        key={index}
+                        index={index}
+                        title={wallet.title}
+                        amount={wallet.amount}
+                      />
+                    ))}
+                  </WalletsContainer>
+                </ScrollView>
+                <Section style={{ marginTop: 56 }}>
+                  <Header>
+                    <HeaderTitle>Latest Entries</HeaderTitle>
+                  </Header>
+                  <Content>
+                    <Entries data={entries} />
+                  </Content>
+                </Section>
               </ScrollView>
-              <Section style={{ marginTop: 56 }}>
-                <Header>
-                  <HeaderTitle>Latest Entries</HeaderTitle>
-                </Header>
-                <Content>
-                  <Entries data={entries} />
-                </Content>
-              </Section>
-            </ScrollView>
-          </SafeAreaView>
-        </AnimatedContainer>
-      </RootView>
+            </SafeAreaView>
+          </AnimatedContainer>
+        </RootView>
+      </ThemeProvider>
     );
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(HomeScreen);
+export default connect(mapStateToProps, mapDispatchToProps())(HomeScreen);
 
 const RootView = styled.View`
   background: black;
@@ -189,7 +227,7 @@ const Header = styled.View`
 `;
 
 const Subtitle = styled.Text`
-  color: #2f2f2f;
+  color: ${(props) => props.theme.PRIMARY_TEXT_COLOR};
   font-weight: 600;
   font-size: 18px;
   margin-left: 20px;
@@ -197,7 +235,7 @@ const Subtitle = styled.Text`
 `;
 
 const HeaderTitle = styled.Text`
-  color: #2f2f2f;
+  color: ${(props) => props.theme.PRIMARY_TEXT_COLOR};
   font-weight: 600;
   font-size: 18px;
   flex: 1;
@@ -205,11 +243,11 @@ const HeaderTitle = styled.Text`
 
 const Content = styled.View``;
 
-const Container = styled(LinearGradient).attrs({
-  colors: ["#ffffff", "#EFF1F5"],
+const Container = styled(LinearGradient).attrs((props) => ({
+  colors: props.theme.PRIMARY_LINEAR_GRADIENT || ["#ffffff", "#EFF1F5"],
   start: { x: 0, y: 0 },
   end: { x: 0, y: 1 },
-})`
+}))`
   flex: 1;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -226,13 +264,13 @@ const Overlay = styled.Image`
 
 const Title = styled.Text`
   font-size: 16px;
-  color: #b8bece;
+  color: ${(props) => props.theme.SECOND_TEXT_COLOR};
   font-weight: 500;
 `;
 
 const Name = styled.Text`
   font-size: 20px;
-  color: #2f2f2f;
+  color: ${(props) => props.theme.PRIMARY_TEXT_COLOR};
   font-weight: bold;
 `;
 
@@ -253,7 +291,7 @@ const ButtonAddWallet = styled.View`
   border-radius: 10px;
   width: 52px;
   height: 52px;
-  border: 1px dashed #c8c8c8;
+  border: 1px dashed ${(props) => props.theme.BORDER_COLOR};
   justify-content: center;
   align-items: center;
   margin-left: 16px;

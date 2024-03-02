@@ -19,29 +19,26 @@ import Success from "../components/Success";
 import Loading from "../components/Loading";
 import { saveState } from "../components/AsyncStorage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  CLOSE_LOGIN,
+  FOCUS_INPUT_IN,
+  FOCUS_INPUT_OUT,
+  closeLogin,
+  updateAvatar,
+  updateName,
+} from "../redux/appActions";
 
 const screenHeight = Dimensions.get("window").height;
 
 function mapStateToProps(state) {
-  return { action: state.action };
+  return { action: state.appReducer.action };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    closeLogin: () =>
-      dispatch({
-        type: "CLOSE_LOGIN",
-      }),
-    updateName: (name) =>
-      dispatch({
-        type: "UPDATE_NAME",
-        name,
-      }),
-    updateAvatar: (avatar) =>
-      dispatch({
-        type: "UPDATE_AVATAR",
-        avatar,
-      }),
+    closeLogin,
+    updateName,
+    updateAvatar,
   };
 }
 
@@ -54,7 +51,7 @@ class LoginScreen extends React.Component {
     errors: {},
 
     // Animated
-    topLogin: new Animated.Value(0),
+    top: new Animated.Value(0),
   };
 
   tapBackground = () => {
@@ -146,24 +143,24 @@ class LoginScreen extends React.Component {
   };
 
   componentDidMount() {
-    this.retrieveName();
+    // this.retrieveName();
   }
 
   componentDidUpdate() {
-    if (this.props.action == "closeLogin") {
+    if (this.props.action == CLOSE_LOGIN) {
       this.props.navigation.navigate("Home");
     }
 
-    if (this.props.action == "focusInputIn") {
-      Animated.timing(this.state.topLogin, {
+    if (this.props.action == FOCUS_INPUT_IN) {
+      Animated.timing(this.state.top, {
         toValue: -80,
         duration: 500,
         useNativeDriver: false,
       }).start();
     }
 
-    if (this.props.action == "focusInputOut") {
-      Animated.timing(this.state.topLogin, {
+    if (this.props.action == FOCUS_INPUT_OUT) {
+      Animated.timing(this.state.top, {
         toValue: 0,
         duration: 500,
         useNativeDriver: false,
@@ -174,7 +171,7 @@ class LoginScreen extends React.Component {
   render() {
     return (
       <>
-        <AnimatedContainer style={{ top: this.state.topLogin }}>
+        <AnimatedContainer style={{ top: this.state.top }}>
           <Overlay source={require("../assets/vector-1.png")} />
           <StatusBar hidden />
           <TouchableWithoutFeedback onPress={this.tapBackground}>
@@ -215,7 +212,7 @@ class LoginScreen extends React.Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(LoginScreen);
+export default connect(mapStateToProps, mapDispatchToProps())(LoginScreen);
 
 const Container = styled(LinearGradient).attrs({
   colors: ["#ffffff", "#EFF1F5"],
