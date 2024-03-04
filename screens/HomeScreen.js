@@ -20,7 +20,7 @@ import { I18n } from "i18n-js";
 import { Translations } from "../Localization";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import Entries from "../components/Entries";
-import { EntrieType } from "../constants/enums";
+import { EntrieCategory, EntrieType } from "../constants/enums";
 import {
   openMenu,
   openLogin,
@@ -32,6 +32,7 @@ import {
 } from "../redux/appActions";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CategoriesChart from "../components/CategoriesChart";
 
 function mapStateToProps(state) {
   return {
@@ -193,6 +194,14 @@ class HomeScreen extends React.Component {
                 </ScrollView>
                 <Section style={{ marginTop: 56 }}>
                   <Header>
+                    <HeaderTitle>Categories Expense</HeaderTitle>
+                  </Header>
+                  <Content>
+                    <CategoriesChart data={entries} />
+                  </Content>
+                </Section>
+                <Section style={{ marginTop: 56 }}>
+                  <Header>
                     <HeaderTitle>Latest Entries</HeaderTitle>
                   </Header>
                   <Content>
@@ -320,7 +329,9 @@ const entries = [
     description: "Google Pay",
     amount: 200,
     type: EntrieType.EXPENSE,
+    category: EntrieCategory.EATING,
     icon: "fast-food",
+    color: "#80C4DC",
   },
   {
     title: "Salary",
@@ -328,22 +339,38 @@ const entries = [
     description: "Cash",
     amount: 3000,
     type: EntrieType.INCOME,
+    category: EntrieCategory.SALARY,
     icon: "cash",
+    color: "#913434",
   },
   {
     title: "Uber",
     date: "2024/02/01",
     description: "Cash",
-    amount: 18,
+    amount: 60,
     type: EntrieType.EXPENSE,
+    category: EntrieCategory.MOVING,
     icon: "bicycle",
+    color: "#3B3DBF",
   },
   {
     title: "Shopping",
     date: "2024/02/01",
     description: "Cash",
-    amount: 400,
+    amount: 300,
     type: EntrieType.EXPENSE,
+    category: EntrieCategory.LIFE,
     icon: "cart",
+    color: "#FF9E9E",
+  },
+  {
+    title: "Internet",
+    date: "2024/02/01",
+    description: "Cash",
+    amount: 120,
+    type: EntrieType.EXPENSE,
+    category: EntrieCategory.BILL,
+    icon: "cash",
+    color: "#3aa55a",
   },
 ];
